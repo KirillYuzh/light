@@ -16,22 +16,31 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'  # Более новая = лучше оптимизация
           
-      - name: Install dependencies
-        run: pip install pyinstaller PyQt6
-          
-      - name: Build Windows EXE
+      - name: Install pyinstaller
+        run: pip install pyinstaller
+        
+      - name: Build with UPX
         run: |
-          pyinstaller --onefile --windowed --name=ClickCounter main.py
-          mkdir release
-          copy dist\ClickCounter.exe release\ClickCounter-Windows.exe
+          pyinstaller \
+            --onefile \
+            --noconsole \
+            --name ClickCounter \
+            --clean \
+            --exclude-module PyQt6 \
+            --exclude-module matplotlib \
+            --upx-dir upx \
+            main.py
           
-      - name: Upload Windows Artifact
+          mkdir release
+          copy dist\ClickCounter.exe release\
+          
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ClickCounter-Windows
-          path: ./release/ClickCounter-Windows.exe
+          name: ClickCounter-Tkinter
+          path: ./release/ClickCounter.exe
 
   build-macos:
     runs-on: macos-latest
