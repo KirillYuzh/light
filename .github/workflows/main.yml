@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
           
       - name: Install dependencies
-        run: pip install pyinstaller
+        run: pip install pyinstaller 
         
       - name: Download UPX
         run: |
@@ -39,8 +39,9 @@ jobs:
             --upx-dir upx `
             main.py
           
-          mkdir release
-          Copy-Item -Path "dist\ClickCounter.exe" -Destination "release\"
+          pyinstaller --onefile --windowed --name ClickCounter main.py
+          mkdir -p ./artifacts/ClickCounter-Windows
+          cp dist/ClickCounter.exe ./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe
           
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -132,7 +133,7 @@ jobs:
       - name: Verify artifacts
         run: |
           ls -R ./artifacts/
-          [ -f "./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe" ] || exit 1
+          [ -f "./artifacts/ClickCounter-Windows/ClickCounter.exe" ] || exit 1
           [ -f "./artifacts/ClickCounter-MacOS/ClickCounter-MacOS.dmg" ] || exit 1
           [ -f "./artifacts/ClickCounter-Linux/ClickCounter-Linux" ] || exit 1
           
