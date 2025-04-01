@@ -1,0 +1,141 @@
+name: Build and Release ClickCounter
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: pip install pyinstaller PyQt6
+          
+      - name: Build Windows EXE
+        run: |
+          pyinstaller --onefile --windowed --name=ClickCounter main.py
+          mkdir release
+          copy dist\ClickCounter.exe release\ClickCounter-Windows.exe
+          
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClickCounter-Windows
+          path: ./release/ClickCounter-Windows.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: pip install pyinstaller PyQt6
+          
+      - name: Build macOS App
+        run: |
+          # Clean previous builds
+          rm -rf dist build
+          
+          # Build the app
+          pyinstaller --windowed --name=ClickCounter main.py
+          
+          # Verify build
+          if [ ! -d "dist/ClickCounter.app" ]; then
+            echo "❌ App build failed!"
+            exit 1
+          fi
+          
+          # Create DMG
+          mkdir -p release dmg_contents
+          cp -R dist/ClickCounter.app dmg_contents/
+          
+          hdiutil create \
+            -volname "ClickCounter" \
+            -srcfolder dmg_contents \
+            -ov \
+            -format UDZO \
+            -fs HFS+ \
+            release/ClickCounter-MacOS.dmg
+          
+      - name: Upload MacOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClickCounter-MacOS
+          path: ./release/ClickCounter-MacOS.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pyqt6
+          
+      - name: Install Python dependencies
+        run: pip install pyinstaller PyQt6
+          
+      - name: Build Linux executable
+        run: |
+          pyinstaller --onefile --windowed --name=ClickCounter main.py
+          mkdir -p release
+          cp dist/ClickCounter release/ClickCounter-Linux
+          
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClickCounter-Linux
+          path: ./release/ClickCounter-Linux
+
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          
+      - name: Verify artifacts
+        run: |
+          ls -R ./artifacts/
+          [ -f "./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe" ] || exit 1
+          [ -f "./artifacts/ClickCounter-MacOS/ClickCounter-MacOS.dmg" ] || exit 1
+          [ -f "./artifacts/ClickCounter-Linux/ClickCounter-Linux" ] || exit 1
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "ClickCounter ${{ github.ref_name }}"
+          body: |
+            ### ClickCounter ${{ github.ref_name }}
+            
+            Simple click counter application built with PyQt6
+            
+            **Downloads:**
+            - [Windows EXE](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ClickCounter-Windows.exe)
+            - [MacOS DMG](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ClickCounter-MacOS.dmg)
+            - [Linux Binary](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ClickCounter-Linux)
+          files: |
+            ./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe
+            ./artifacts/ClickCounter-MacOS/ClickCounter-MacOS.dmg
+            ./artifacts/ClickCounter-Linux/ClickCounter-Linux
