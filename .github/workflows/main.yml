@@ -39,7 +39,6 @@ jobs:
             --upx-dir upx `
             main.py
           
-          pyinstaller --onefile --windowed --name ClickCounter main.py
           mkdir -p ./artifacts/ClickCounter-Windows
           cp dist/ClickCounter.exe ./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe
           
@@ -47,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ClickCounter-Windows
-          path: ./release/ClickCounter.exe
+          path: ./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe  
 
   build-macos:
     runs-on: macos-latest
@@ -133,7 +132,7 @@ jobs:
       - name: Verify artifacts
         run: |
           ls -R ./artifacts/
-          [ -f "./artifacts/ClickCounter-Windows/ClickCounter.exe" ] || exit 1
+          [ -f "./artifacts/ClickCounter-Windows/ClickCounter-Windows.exe" ] || exit 1
           [ -f "./artifacts/ClickCounter-MacOS/ClickCounter-MacOS.dmg" ] || exit 1
           [ -f "./artifacts/ClickCounter-Linux/ClickCounter-Linux" ] || exit 1
           
@@ -144,8 +143,6 @@ jobs:
           name: "ClickCounter ${{ github.ref_name }}"
           body: |
             ### ClickCounter ${{ github.ref_name }}
-            
-            Simple click counter application built with PyQt6
             
             **Downloads:**
             - [Windows EXE](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/ClickCounter-Windows.exe)
