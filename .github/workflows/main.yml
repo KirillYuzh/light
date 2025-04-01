@@ -16,30 +16,36 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # Более новая = лучше оптимизация
+          python-version: '3.11'
           
-      - name: Install pyinstaller
+      - name: Install dependencies
         run: pip install pyinstaller
         
-      - name: Build with UPX
+      - name: Download UPX
         run: |
-          pyinstaller \
-            --onefile \
-            --noconsole \
-            --name ClickCounter \
-            --clean \
-            --exclude-module PyQt6 \
-            --exclude-module matplotlib \
-            --upx-dir upx \
+          Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip" -OutFile "upx.zip"
+          Expand-Archive -Path "upx.zip" -DestinationPath "upx"
+          
+      - name: Build executable
+        shell: pwsh
+        run: |
+          pyinstaller `
+            --onefile `
+            --noconsole `
+            --name ClickCounter `
+            --clean `
+            --exclude-module PyQt6 `
+            --exclude-module matplotlib `
+            --upx-dir upx `
             main.py
           
           mkdir release
-          copy dist\ClickCounter.exe release\
+          Copy-Item -Path "dist\ClickCounter.exe" -Destination "release\"
           
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ClickCounter-Tkinter
+          name: ClickCounter-Windows
           path: ./release/ClickCounter.exe
 
   build-macos:
