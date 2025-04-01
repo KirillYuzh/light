@@ -1,37 +1,27 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel
+import tkinter as tk
 
-class ClickCounterApp(QMainWindow):
+class ClickCounter:
     def __init__(self):
-        super().__init__()
-        self.click_count = 0
-        self.setWindowTitle("Click Counter")
-        self.setGeometry(100, 100, 300, 200)
+        self.count = 0
+        self.root = tk.Tk()
+        self.root.title("Click Counter")
         
-        # Central widget and layout
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout()
+        self.label = tk.Label(self.root, text="Clicks: 0", font=("Arial", 20))
+        self.label.pack(pady=20)
         
-        # Click counter label
-        self.label = QLabel(f"Clicks: {self.click_count}")
-        self.label.setStyleSheet("font-size: 20px;")
-        layout.addWidget(self.label)
+        self.button = tk.Button(
+            self.root, 
+            text="Click Me!", 
+            command=self.increment,
+            font=("Arial", 14),
+            padx=20,
+            pady=10
+        )
+        self.button.pack()
         
-        # Click button
-        self.button = QPushButton("Click Me!")
-        self.button.setStyleSheet("font-size: 16px; padding: 10px;")
-        self.button.clicked.connect(self.increment_count)
-        layout.addWidget(self.button)
-        
-        central_widget.setLayout(layout)
-    
-    def increment_count(self):
-        self.click_count += 1
-        self.label.setText(f"Clicks: {self.click_count}")
+    def increment(self):
+        self.count += 1
+        self.label.config(text=f"Clicks: {self.count}")
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = ClickCounterApp()
-    window.show()
-    sys.exit(app.exec())
+app = ClickCounter()
+app.root.mainloop()
