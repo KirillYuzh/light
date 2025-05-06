@@ -11,7 +11,7 @@ class ClickCounter:
         
         self.button = tk.Button(
             self.root, 
-            text="systeminfo!", 
+            text="Param pam!", 
             command=self.increment,
             font=("Arial", 14),
             padx=20,
