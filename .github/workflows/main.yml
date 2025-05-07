@@ -71,7 +71,7 @@ jobs:
           
           # Verify build
           if [ ! -d "dist/ClickCounter.app" ]; then
-            echo "❌ App build failed!"
+            echo "App build failed!"
             exit 1
           fi
           
